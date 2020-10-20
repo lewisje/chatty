@@ -1,4 +1,3 @@
-
 package chatty.util.settings;
 
 import chatty.Logging;
@@ -23,9 +22,9 @@ import org.json.simple.parser.ParseException;
  * @author tduva
  */
 public class Settings {
-    
+
     private final Object LOCK = new Object();
-    
+
     /**
      * Holds all settings of different Types. TreeMap to have setting names
      * lookup case-insenstive while still retaining the case for display.
@@ -36,38 +35,38 @@ public class Settings {
     private final String defaultFile;
     private final FileManager fileManager;
     private final Set<String> files = new HashSet<>();
-    
+
     private static final Logger LOGGER = Logger.getLogger(Settings.class.getName());
-    
+
     public Settings(String path, FileManager fileManager) {
         this.defaultFile = path;
         this.fileManager = fileManager;
     }
-    
+
     public void addSettingChangeListener(SettingChangeListener listener) {
         listeners.add(listener);
     }
-    
+
     private void settingChanged(String setting, int type, Object value) {
         for (SettingChangeListener listener : listeners) {
             listener.settingChanged(setting, type, value);
         }
     }
-    
+
     public void addSettingsListener(SettingsListener listener) {
         settingsListeners.add(listener);
     }
-    
+
     private void aboutToSaveSettings() {
         for (SettingsListener listener : settingsListeners) {
             listener.aboutToSaveSettings(this);
         }
     }
-    
+
     public void addFile(String fileName) {
         files.add(fileName);
     }
-    
+
     public void setFile(String settingName, String fileName) {
         if (!isSetting(settingName)) {
             throw new SettingNotFoundException("Could not find setting: "+settingName);
@@ -78,14 +77,14 @@ public class Settings {
         Setting setting = settings.get(settingName);
         setting.setFile(fileName);
     }
-    
+
     private boolean isSetting(String settingName) {
         if (getType(settingName) != Setting.UNDEFINED) {
             return true;
         }
         return false;
     }
-    
+
     /**
      * Checks if the setting with the given name is of the given type.
      * 
@@ -103,7 +102,7 @@ public class Settings {
         }
         return false;
     }
-    
+
     private boolean isOfSubtype(String settingName, int type) {
         Setting obj = settings.get(settingName);
         if (obj != null && obj instanceof SubtypeSetting) {
@@ -111,7 +110,7 @@ public class Settings {
         }
         return false;
     }
-    
+
     private int getType(String settingName) {
         Setting obj = settings.get(settingName);
         if (obj != null) {
@@ -119,23 +118,23 @@ public class Settings {
         }
         return Setting.UNDEFINED;
     }
-    
+
     public boolean isBooleanSetting(String settingName) {
         return isOfType(settingName, Setting.BOOLEAN);
     }
-    
+
     public boolean isStringSetting(String settingName) {
         return isOfType(settingName, Setting.STRING);
     }
-    
+
     public boolean isLongSetting(String settingName) {
         return isOfType(settingName, Setting.LONG);
     }
-    
+
     public boolean isMapSetting(String settingName) {
         return isOfType(settingName, Setting.MAP);
     }
-    
+
     public boolean isListSetting(String settingName) {
         return isOfType(settingName, Setting.LIST);
     }
@@ -151,39 +150,38 @@ public class Settings {
     public void addLong(String settingName, long value, boolean save) {
         add(settingName, value, Setting.LONG, Setting.UNDEFINED, save);
     }
-    
+
     public void addBoolean(String settingName, boolean value) {
         addBoolean(settingName, value, true);
     }
-    
+
     public void addString(String settingName, String value) {
         addString(settingName, value, true);
     }
-    
+
     public void addLong(String settingName, long value) {
         addLong(settingName, value, true);
     }
-    
+
     public void addMap(String settingName, Map value, int type) {
         add(settingName, value, Setting.MAP, type, true);
     }
-    
+
     public void addList(String settingName, Collection value, int type) {
         add(settingName, value, Setting.LIST, type, true);
     }
-    
+
     public int setString(String settingName, String value) {
         return set(settingName, value, Setting.STRING);
     }
-    
+
     public int setBoolean(String settingName, boolean value) {
         return set(settingName, value, Setting.BOOLEAN);
     }
-    
+
     public int setLong(String settingName, long value) {
         return set(settingName, value, Setting.LONG);
     }
-    
 
     /**
      * Adds a setting, overwrites existing setting. A setting must be added
@@ -202,7 +200,7 @@ public class Settings {
             settings.put(settingName, new Setting(value, type, save, defaultFile));
         }
     }
-    
+
     /**
      * Sets the given setting to a new value. The type must match the type
      * of the given value.
@@ -232,7 +230,7 @@ public class Settings {
         }
         return Setting.NOT_CHANGED;
     }
-    
+
     /**
      * Gets the value (as Object, but containing the type specified by the type
      * parameter) of the setting with the given name and type, or throws an
@@ -253,17 +251,17 @@ public class Settings {
             return settings.get(settingName).getValue();
         }
     }
-    
+
     private Object get(String settingName, int type) {
         return get(settingName, type, false);
     }
-    
+
     private Object get(String settingName) {
         synchronized(LOCK) {
             return settings.get(settingName).getValue();
         }
     }
-    
+
     private Setting getSetting(String settingName) {
         Setting setting = settings.get(settingName);
         if (setting == null) {
@@ -271,27 +269,27 @@ public class Settings {
         }
         return setting;
     }
-    
+
     public boolean hasDefaultValue(String settingName) {
         synchronized(LOCK) {
             return getSetting(settingName).hasDefaultValue();
         }
     }
-    
+
     public boolean isValueSet(String settingName) {
         synchronized(LOCK) {
             return getSetting(settingName).isValueSet();
         }
     }
-    
+
     public boolean getBoolean(String settingName) {
         return (Boolean)get(settingName, Setting.BOOLEAN);
     }
-    
+
     public boolean getBooleanDefault(String settingName) {
         return (Boolean)get(settingName, Setting.BOOLEAN, true);
     }
-    
+
     /**
      * Gets a String setting.
      * 
@@ -301,7 +299,7 @@ public class Settings {
     public String getString(String setting) {
         return (String)get(setting, Setting.STRING);
     }
-    
+
     public String getStringDefault(String setting) {
         return (String)get(setting, Setting.STRING, true);
     }
@@ -327,7 +325,7 @@ public class Settings {
             return new HashMap(getMapInternal(settingName));
         }
     }
-    
+
     /**
      * Copies the current data of the Map of this setting into the given Map,
      * then returns it for convenience.
@@ -345,7 +343,7 @@ public class Settings {
             return map;
         }
     }
-    
+
     /**
      * Stores a copy of the data from <tt>map</tt> into the setting with the
      * given name. Clears the setting Map first, so only the given data will be
@@ -365,14 +363,13 @@ public class Settings {
             return changed;
         }
     }
-    
+
     public Object mapGet(String settingName, Object key) {
         synchronized(LOCK) {
             return getMapInternal(settingName).get(key);
         }
     }
 
-    
     /**
      * Puts a {@code key}-{@code value} pair into the {@code Map} with the name
      * {@code settingName}.
@@ -388,9 +385,7 @@ public class Settings {
             getMapInternal(settingName).put(key, value);
         }
     }
-    
-    
-    
+
     /**
      * Clears the Map of the setting with the given name.
      * 
@@ -403,9 +398,7 @@ public class Settings {
             getMapInternal(settingName).clear();
         }
     }
-    
 
-    
     /**
      * Removes {@code key} from the {@code Map} of the setting with
      * {@code settingName}.
@@ -435,7 +428,7 @@ public class Settings {
             return new ArrayList(getListInternal(settingName));
         }
     }
-    
+
     /**
      * Stores a shallow copy of the data from the setting <tt>settingName</tt>
      * into the given list.
@@ -450,7 +443,7 @@ public class Settings {
             list.addAll((Collection) get(settingName, Setting.LIST));
         }
     }
-    
+
     /**
      * Saves a shallow copy of the given list into the settings. The given list
      * should not be modified concurrently during this.
@@ -467,7 +460,7 @@ public class Settings {
             settingList.addAll(list);
         }
     }
-    
+
     /**
      * Checks if the List for the given setting contains the given {@code value}.
      * 
@@ -497,19 +490,19 @@ public class Settings {
             return getListInternal(settingName).remove(value);
         }
     }
-    
+
     public void listAdd(String settingName, Object value) {
         synchronized(LOCK) {
             getListInternal(settingName).add(value);
         }
     }
-    
+
     public void listClear(String settingName) {
         synchronized(LOCK) {
             getListInternal(settingName).clear();
         }
     }
-    
+
     /**
      * Adds the given <tt>Object</tt> to this <tt>List</tt> setting, if it
      * wasn't already in there.
@@ -529,8 +522,7 @@ public class Settings {
             return false;
         }
     }
-    
-        
+
     /**
      * Gets the Map of the setting with this name, that can be directly modified
      * (if synchronized on LOCK).
@@ -543,7 +535,7 @@ public class Settings {
             return (Map) get(settingName, Setting.MAP);
         }
     }
-        
+
     /**
      * Returns the actual List for this setting, that can directly be modified
      * (if synchronized on <tt>LOCK</tt>).
@@ -554,7 +546,7 @@ public class Settings {
     private Collection getListInternal(String settingName) {
         return (Collection) get(settingName, Setting.LIST);
     }
-    
+
     /**
      * Manually set a List or Map setting as changed, since those can't properly
      * detect it themselves.
@@ -568,13 +560,13 @@ public class Settings {
             settingChanged(settingName, Setting.MAP, getMap(settingName));
         }
     }
-    
+
     public String settingValueToString(String setting) {
         synchronized(LOCK) {
             return settings.get(setting).toString();
         }
     }
-    
+
     public String settingToString(String setting) {
         if (isBooleanSetting(setting)) {
             return "Setting '"+setting+"' is "+getBoolean(setting)+".";
@@ -593,13 +585,13 @@ public class Settings {
         }
         return null;
     }
-    
+
     public String addTextual(String text) {
         if (text == null || text.isEmpty()) {
             return "Usage: /add <setting> <value>";
         }
         String[] split = text.trim().split(" ", 2);
-        
+
         if (split.length < 2) {
             return "Usage: /add <setting> <value>";
         }
@@ -623,13 +615,13 @@ public class Settings {
         }
         return settingInvalidMessage(setting);
     }
-    
+
     public String removeTextual(String text) {
         if (text == null || text.isEmpty()) {
             return "Usage: /remove <setting> <value>";
         }
         String[] split = text.trim().split(" ", 2);
-        
+
         if (split.length < 2) {
             return "Usage: /remove <setting> <value>";
         }
@@ -657,13 +649,13 @@ public class Settings {
         }
         return settingInvalidMessage(setting);
     }
-    
+
     public String setTextual(String text) {
         if (text == null || text.isEmpty()) {
             return "Usage: /set <setting> <value>";
         }
         String[] split = text.split(" ", 2);
-        
+
         if (split.length < 2) {
             return "Usage: /set <setting> <value>";
         }
@@ -712,14 +704,14 @@ public class Settings {
         }
         return settingInvalidMessage(setting);
     }
-    
+
     public String resetTextual(String text) {
         if (text == null || text.isEmpty()) {
             return "Usage: /reset <setting>";
         }
         String[] split = text.split(" ", 2);
         String settingName = split[0];
-        
+
         if (getType(settingName) != Setting.UNDEFINED) {
             int result = set(settingName, null, getType(settingName));
             Object value = get(settingName);
@@ -731,7 +723,7 @@ public class Settings {
         }
         return "Setting does not exist.";
     }
-    
+
     public String getTextual(String text) {
         if (text == null || text.isEmpty()) {
             return "Usage: /get <setting>";
@@ -744,7 +736,7 @@ public class Settings {
         }
         return "Setting does not exist.";
     }
-    
+
     /**
      * Sets the setting with the specified name to an empty value. This is only
      * possible with Strings.
@@ -780,14 +772,14 @@ public class Settings {
         }
         return settingInvalidMessage(setting);
     }
-    
+
     private String settingInvalidMessage(String setting) {
         if (isSetting(setting)) {
             return "Invalid setting: '"+setting+"' (can't change with this command).";
         }
         return "Invalid setting: '"+setting+"'.";
     }
-    
+
     /**
      * Turns all settings into a JSON String.
      * 
@@ -795,14 +787,14 @@ public class Settings {
      */
     private String settingsToJson(String file) {
         JSONObject obj = new JSONObject();
-        
+
         Set<Map.Entry<String,Setting>> set = settings.entrySet();
         for (Entry<String,Setting> entry : set) {
             Setting setting = entry.getValue();
             if (setting.allowedToSave() && setting.getFile().equals(file)) {
                 String key = entry.getKey();
                 Object value = setting.getValue();
-                
+
                 // JSON Simple only supports List in this version
                 if (value instanceof Collection) {
                     value = new ArrayList((Collection)value);
@@ -810,13 +802,13 @@ public class Settings {
                 obj.put(key, value);
             }
         }
-        
+
         if (obj.isEmpty()) {
             return null;
         }
         return obj.toJSONString();
     }
-    
+
     /**
      * Parses the settings from a JSON String and adds them to the settings
      * data. Only loads settings that were peviously defined and that can be
@@ -852,8 +844,7 @@ public class Settings {
             }
         }
     }
-    
-    
+
     private void mapFromJson(Map map, SubtypeSetting setting) {
         Map settingMap = (Map)setting.getValue();
         for (Object key : map.keySet()) {
@@ -864,7 +855,7 @@ public class Settings {
         }
         setting.setValueSet();
     }
-    
+
     private void listFromJson(List list, SubtypeSetting setting) {
         Collection settingList = (Collection)setting.getValue();
         settingList.clear();
@@ -875,8 +866,7 @@ public class Settings {
         }
         setting.setValueSet();
     }
-    
-    
+
     private int getTypeFromObject(Object obj) {
         if (obj instanceof Number) {
             return Setting.LONG;
@@ -895,7 +885,7 @@ public class Settings {
         }
         return Setting.UNDEFINED;
     }
-    
+
     /**
      * Saves the settings to a file as JSON.
      * 
@@ -914,7 +904,7 @@ public class Settings {
         }
         return result;
     }
-    
+
     private SaveResult saveSettingsToJson(String fileName, boolean force) {
         String json = settingsToJson(fileName);
         SaveResult result = fileManager.save(fileName, json, force);
@@ -938,7 +928,7 @@ public class Settings {
             return success;
         }
     }
-    
+
     /**
      * Load settings from the given file id (as known in fileManager).
      * 
@@ -967,7 +957,7 @@ public class Settings {
         }
         return true;
     }
-    
+
     private static void logParseError(String fileId, String input, ParseException ex) {
         int pos = ex.getPosition();
         int start = pos - 10;
@@ -980,7 +970,7 @@ public class Settings {
                 fileId,
                 excerpt));
     }
-    
+
     public Collection<String> getSettingNames() {
         synchronized(LOCK) {
             return new HashSet<>(settings.keySet());
@@ -990,5 +980,5 @@ public class Settings {
     public FileManager getFileManager() {
         return fileManager;
     }
-    
+
 }

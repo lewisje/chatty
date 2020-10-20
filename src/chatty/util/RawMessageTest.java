@@ -1,4 +1,3 @@
-
 package chatty.util;
 
 import chatty.util.api.CheerEmoticon;
@@ -8,7 +7,7 @@ import chatty.util.api.CheerEmoticon;
  * @author tduva
  */
 public class RawMessageTest {
-    
+
     public static String simulateIRC(String channel, String parameters, String localUsername) {
         String split[] = parameters.split(" ", 2);
         String type = split[0];
@@ -16,7 +15,7 @@ public class RawMessageTest {
         if (split.length == 2) {
             options = split[1];
         }
-        
+
         if (type.equals("sub")) {
             return ":twitchnotify!twitchnotify@twitchnotify.tmi.twitch.tv PRIVMSG "+channel+" :USERNAME just subscribed!";
         }
@@ -153,5 +152,5 @@ public class RawMessageTest {
         }
         return null;
     }
-    
+
 }

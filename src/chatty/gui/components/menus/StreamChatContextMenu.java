@@ -1,4 +1,3 @@
-
 package chatty.gui.components.menus;
 
 import chatty.TwitchClient;
@@ -16,9 +15,9 @@ import javax.swing.JOptionPane;
  * @author tduva
  */
 public class StreamChatContextMenu extends ContextMenu {
-    
+
     public static TwitchClient client;
-    
+
     private static final String CHANNEL_SETTING = "streamChatChannels";
     private static final String LOGO_SETTING = "streamChatLogos";
 
@@ -27,17 +26,17 @@ public class StreamChatContextMenu extends ContextMenu {
         addSeparator();
         List<String> channels = new ArrayList<>();
         List<String> enabledChannels = client.settings.getList(CHANNEL_SETTING);
-        
+
         // Add enabled first
         channels.addAll(enabledChannels);
         // Add open, if not added yet
         addChans(channels, client.getOpenChannels());
-        
+
         Collections.sort(channels);
         for (String chan : channels) {
             addCheckboxItem("toggleChannel."+chan, chan, "Enabled Channels", enabledChannels.contains(chan));
         }
-        
+
         final String logoSubmenu = "Channel Logos";
         int defaultSize = Integer.parseInt(client.settings.getStringDefault(LOGO_SETTING));
         int currentSize = Integer.parseInt(client.settings.getString(LOGO_SETTING));
@@ -61,7 +60,7 @@ public class StreamChatContextMenu extends ContextMenu {
         addSeparator(logoSubmenu);
         addItem("logoReadme", "Readme", logoSubmenu);
     }
-    
+
     private static void addChans(List<String> chans, Collection<String> add) {
         for (String chan : add) {
             chan = StringUtil.toLowerCase(chan);
@@ -70,7 +69,7 @@ public class StreamChatContextMenu extends ContextMenu {
             }
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().startsWith("toggleChannel.")) {
@@ -96,5 +95,5 @@ public class StreamChatContextMenu extends ContextMenu {
             l.menuItemClicked(e);
         }
     }
-    
+
 }

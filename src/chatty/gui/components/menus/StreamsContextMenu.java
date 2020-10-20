@@ -1,4 +1,3 @@
-
 package chatty.gui.components.menus;
 
 import java.awt.event.ActionEvent;
@@ -11,14 +10,14 @@ import java.util.Collection;
  * @author tduva
  */
 public class StreamsContextMenu extends ContextMenu {
-    
+
     private final ContextMenuListener listener;
     private final Collection<String> streams;
-    
+
     public StreamsContextMenu(Collection<String> streams, ContextMenuListener listener) {
         this.listener = listener;
         this.streams = streams;
-        
+
         ContextMenuHelper.addStreamsOptions(this, streams.size());
     }
 
@@ -28,5 +27,5 @@ public class StreamsContextMenu extends ContextMenu {
             listener.streamsMenuItemClicked(e, streams);
         }
     }
-    
+
 }

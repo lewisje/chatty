@@ -1,4 +1,3 @@
-
 package chatty.util.api;
 
 import chatty.Chatty;
@@ -37,26 +36,26 @@ import org.json.simple.JSONObject;
  * @author tduva
  */
 public class Requests {
-    
+
     private static final Logger LOGGER = Logger.getLogger(Requests.class.getName());
-    
+    private static final short MAX_FOLLOWS = 2000;
+
     private final ExecutorService executor;
     private final TwitchApi api;
     private final QueuedApi newApi;
     private final TwitchApiResultListener listener;
-    
+
     public Requests(TwitchApi api, TwitchApiResultListener listener) {
         executor = Executors.newCachedThreadPool();
         this.api = api;
         this.listener = listener;
         this.newApi = new QueuedApi();
     }
-    
-    
+
     //====================
     // Channel Information
     //====================
-    
+
     protected void requestFollowers(String streamId, String stream) {
         String url = "https://api.twitch.tv/kraken/channels/"+streamId+"/follows?direction=desc&limit=100&offset=0";
         //url = "http://127.0.0.1/twitch/followers";
@@ -67,7 +66,7 @@ public class Requests {
             });
         }
     }
-    
+
     protected void requestSubscribers(String streamId, String stream, String token) {
         String url = "https://api.twitch.tv/kraken/channels/"+streamId+"/subscriptions?direction=desc&limit=100&offset=0";
         if (Chatty.DEBUG) {
@@ -81,7 +80,7 @@ public class Requests {
             });
         }
     }
-    
+
     public void getChannelInfo(String streamId, String stream) {
         if (stream == null || stream.isEmpty()) {
             return;
@@ -95,26 +94,37 @@ public class Requests {
         }
     }
 
-    
     //===================
     // Stream Information
     //===================
-    
+
     protected void requestFollowedStreams(String token, String nextUrl) {
+        int inc;
         String url;
+        TwitchApiRequest request;
         if (nextUrl != null) {
             url = nextUrl;
+            request = new TwitchApiRequest(url, "v5");
+            request.setToken(token);
+            execute(request, r -> {
+                api.streamInfoManager.requestResultFollows(r.text, r.responseCode);
+            });
         } else {
             url = "https://api.twitch.tv/kraken/streams/followed?stream_type=all&limit="
-                    + StreamInfoManager.FOLLOWED_STREAMS_LIMIT + "&offset=0";
+                    + StreamInfoManager.FOLLOWED_STREAMS_LIMIT + "&offset=";
+            try {
+                for (inc = 0; inc < MAX_FOLLOWS;
+                     inc = inc + StreamInfoManager.FOLLOWED_STREAMS_LIMIT) {
+                    request = new TwitchApiRequest(url + inc, "v5");
+                    request.setToken(token);
+                    execute(request, r -> {
+                        api.streamInfoManager.requestResultFollows(r.text, r.responseCode);
+                    });
+                }
+            } finally {}
         }
-        TwitchApiRequest request = new TwitchApiRequest(url, "v5");
-        request.setToken(token);
-        execute(request, r -> {
-            api.streamInfoManager.requestResultFollows(r.text, r.responseCode);
-        });
     }
-    
+
     /**
      * Sends a request to get streaminfo of the given stream.
      * 
@@ -129,7 +139,7 @@ public class Requests {
             }
         }, stream);
     }
-    
+
     private void requestStreamInfoById(String stream, String userId) {
         /**
          * Switched to /streams?channel= request since it didn't have the
@@ -145,7 +155,7 @@ public class Requests {
             });
         }
     }
-    
+
     protected void requestStreamsInfo(Set<String> streams, Set<StreamInfo> streamInfosForRequest) {
         api.userIDs.getUserIDs(r -> {
             if (r.getValidIDs().isEmpty()) {
@@ -155,7 +165,7 @@ public class Requests {
             }
         }, streams);
     }
-    
+
     private void requestStreamsInfoById(Collection<String> ids, Set<StreamInfo> expected) {
         String streamsString = StringUtil.join(ids, ",");
         String url = "https://api.twitch.tv/kraken/streams?stream_type=all&offset=0&limit=100&channel=" + streamsString;
@@ -170,7 +180,7 @@ public class Requests {
     //=======
     // System
     //=======
-    
+
     public void verifyToken(String token) {
         String url = "https://api.twitch.tv/kraken/";
         //url = "http://127.0.0.1/twitch/token";
@@ -181,7 +191,7 @@ public class Requests {
             listener.tokenVerified(token, tokenInfo);
         });
     }
-    
+
     public void revokeToken(String token) {
         String url = "https://id.twitch.tv/oauth2/revoke?client_id="+Chatty.CLIENT_ID+"&token="+token;
         TwitchApiRequest request = new TwitchApiRequest(url, "v5");
@@ -196,7 +206,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void requestUserIDs(Set<String> usernames) {
         String url = "https://api.twitch.tv/kraken/users?login="+StringUtil.join(usernames, ",");
         if (attemptRequest(url)) {
@@ -210,7 +220,7 @@ public class Requests {
     //================
     // User Management
     //================
-    
+
     public void followChannel(String userId, String targetId, String targetName, String token) {
         String url = String.format(
                 "https://api.twitch.tv/kraken/users/%s/follows/channels/%s",
@@ -240,7 +250,7 @@ public class Requests {
             });
         }
     }
-    
+
     public void unfollowChannel(String userId, String targetId, String targetName, String token) {
         String url = String.format(
                 "https://api.twitch.tv/kraken/users/%s/follows/channels/%s",
@@ -279,11 +289,11 @@ public class Requests {
             });
         }
     }
-    
+
     //=================
     // Admin/Moderation
     //=================
-    
+
     /**
      * 
      * @param userId
@@ -304,14 +314,14 @@ public class Requests {
             });
         }
     }
-    
+
     private int allTagsRequestCount;
-    
+
     public void getAllTags(StreamTagManager.StreamTagsListener listener) {
         allTagsRequestCount = 0;
         getAllTags(api.defaultToken, null, listener);
     }
-    
+
     private void getAllTags(String token, String cursor, StreamTagManager.StreamTagsListener listener) {
         String url = "https://api.twitch.tv/helix/tags/streams?first=100";
         if (cursor != null) {
@@ -342,7 +352,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void getTagsByIds(Set<String> ids, StreamTagsListener listener) {
         String parameters = "?tag_id="+StringUtil.join(ids, "&tag_id=");
         String url = "https://api.twitch.tv/helix/tags/streams"+parameters;
@@ -360,7 +370,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void setStreamTags(String userId, Collection<StreamTag> tags,
             StreamTagPutListener listener) {
         List<String> tagIds = new ArrayList<>();
@@ -386,7 +396,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void getTagsByStream(String userId, StreamTagsListener listener) {
         String url = "https://api.twitch.tv/helix/streams/tags?broadcaster_id="+userId;
         newApi.add(url, "GET", api.defaultToken, (data, responseCode) -> {
@@ -404,7 +414,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void getGameSearch(String game, GameSearchListener listener) {
         if (game == null || game.isEmpty()) {
             return;
@@ -426,7 +436,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void runCommercial(String userId, String stream, String token, int length) {
         String url = "https://api.twitch.tv/kraken/channels/"+userId+"/commercial";
         if (attemptRequest(url)) {
@@ -457,7 +467,7 @@ public class Requests {
             });
         }
     }
-    
+
     public void autoMod(String action, String msgId, String token) {
         if (!action.equals("approve") && !action.equals("deny")) {
             return;
@@ -484,7 +494,7 @@ public class Requests {
             }
         });
     }
-    
+
     public void createStreamMarker(String userId, String description, String token, StreamMarkerResult listener) {
         Map<String, String> data = new HashMap<>();
         data.put("user_id", userId);
@@ -505,11 +515,11 @@ public class Requests {
             }
         });
     }
-    
+
     //=================
     // Chat / Emoticons
     //=================
-    
+
     protected void requestGlobalBadges() {
         String url = "https://badges.twitch.tv/v1/badges/global/display?language=en";
         if (attemptRequest(url)) {
@@ -519,7 +529,7 @@ public class Requests {
             });
         }
     }
-    
+
     protected void requestRoomBadges(String roomId, String stream) {
         String url = "https://badges.twitch.tv/v1/badges/channels/"+roomId+"/display?language=en";
         if (attemptRequest(url)) {
@@ -529,7 +539,7 @@ public class Requests {
             });
         }
     }
-    
+
     public void requestEmotesets(Set<String> emotesets) {
         if (emotesets != null && !emotesets.isEmpty()) {
             String emotesetsParam = StringUtil.join(emotesets, ",");
@@ -546,10 +556,10 @@ public class Requests {
                 });
             }
         }
-        
+
             //requestResult(REQUEST_TYPE_EMOTICONS,"")
     }
-    
+
     public void requestUserEmotes(String userId) {
         String url = "https://api.twitch.tv/kraken/users/"+userId+"/emotes";
         if (attemptRequest(url)) {
@@ -573,7 +583,7 @@ public class Requests {
             });
         }
     }
-    
+
     public void requestCheerEmoticons(String channelId, String stream) {
         String url = "https://api.twitch.tv/kraken/bits/actions?channel_id="+channelId+"&include_sponsored=1";
         if (attemptRequest(url)) {
@@ -583,11 +593,11 @@ public class Requests {
             });
         }
     }
-    
+
     //===================
     // Management Methods
     //===================
-    
+
     public void execute(TwitchApiRequest request, RequestResultListener listener) {
         request.setOrigin(new TwitchApiRequestResult() {
 
@@ -602,37 +612,37 @@ public class Requests {
                         + "): " + filterToken(url, token)
                         + (token != null ? " (using authorization)" : "")
                         + (error != null ? " [" + error + "]" : ""));
-                
+
                 removeRequest(url);
-                
+
                 if (Debugging.isEnabled("requestresponse")) {
                     LOGGER.info(result);
                 }
-                
+
                 listener.result(new RequestResult(result, responseCode));
             }
         });
         executor.execute(request);
     }
-    
+
     public interface RequestResultListener {
         public void result(RequestResult result);
     }
-    
+
     public static class RequestResult {
-        
+
         public final String text;
         public final int responseCode;
-        
+
         public RequestResult(String result, int responseCode) {
             this.text = result;
             this.responseCode = responseCode;
         }
-        
+
     }
-    
+
     private final Set<String> pendingRequest = new HashSet<>();
-    
+
     /**
      * Checks if a request with the given url can be made. Returns true if no
      * request with that url is currently waiting for a response, false
@@ -653,7 +663,7 @@ public class Requests {
             return false;
         }
     }
-    
+
     /**
      * Removes the given url from the requests that are waiting for a response
      * and retrieves the name of the stream this url is associated with.
@@ -667,12 +677,12 @@ public class Requests {
             pendingRequest.remove(url);
         }
     }
-    
+
     public static String filterToken(String input, String token) {
         if (input != null && token != null) {
             return input.replace(token, "<token>");
         }
         return input;
     }
-    
+
 }

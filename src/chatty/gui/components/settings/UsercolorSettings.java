@@ -1,4 +1,3 @@
-
 package chatty.gui.components.settings;
 
 import chatty.util.colors.HtmlColors;
@@ -24,7 +23,7 @@ import javax.swing.table.TableCellRenderer;
  * @author tduva
  */
 public class UsercolorSettings extends SettingsPanel {
-    
+
     private static final String INFO_TEXT = "<html><body style='width:105px'>"
             + "Add items to the list to assign them colors. The order matters, items "
             + "on the top are matched first.<br /><br />"
@@ -37,18 +36,18 @@ public class UsercolorSettings extends SettingsPanel {
             + "$all - All Users<br />"
             + "<br />"
             + "[help:Usercolors And more..]";
-    
+
     private final ItemColorEditor<UsercolorItem> data;
     private Color defaultBackgroundColor;
-    
+
     public UsercolorSettings(SettingsDialog d) {
         super(true);
-        
+
         JPanel customPanel = addTitledPanel("Custom Usercolors", 0, true);
         JPanel otherPanel = addTitledPanel(Language.getString("settings.section.usercolorsOther"), 1);
-        
+
         GridBagConstraints gbc;
-        
+
         //===================
         // Custom Usercolors
         //===================
@@ -69,54 +68,60 @@ public class UsercolorSettings extends SettingsPanel {
         gbc.weightx = 1;
         gbc.weighty = 1;
         customPanel.add(data, gbc);
-        
+
         SettingsUtil.addSubsettings(usercolorsEnabled, data);
-        
+
         LinkLabel info = new LinkLabel(INFO_TEXT, d.getSettingsHelpLinkLabelListener());
         customPanel.add(info, d.makeGbc(1, 1, 1, 1));
-        
+
         //================
         // Other Settings
         //================
         otherPanel.add(new JLabel(Language.getString("settings.string.nickColorCorrection")),
                 d.makeGbc(0, 0, 1, 1, GridBagConstraints.EAST));
-        
+
         String[] colorCorrectionTypes = new String[ColorCorrector.TYPES.keySet().size()];
         ColorCorrector.TYPES.keySet().toArray(colorCorrectionTypes);
         otherPanel.add(d.addComboStringSetting("nickColorCorrection", false, colorCorrectionTypes),
                 d.makeGbc(1, 0, 1, 1));
-        
+
         JButton colorCorrectionPreview = new JButton("Preview");
         colorCorrectionPreview.addActionListener(e -> {
             new UsercolorCorrectionPreview(d, defaultBackgroundColor);
         });
         otherPanel.add(colorCorrectionPreview,
                 d.makeGbc(2, 0, 1, 1));
-        
+
         otherPanel.add(SettingsUtil.createLabel("nickColorBackground"),
                 d.makeGbc(0, 1, 1, 1, GridBagConstraints.EAST));
-        
+
         otherPanel.add(d.addComboLongSetting("nickColorBackground", 0, 1, 2),
                 d.makeGbc(1, 1, 2, 1, GridBagConstraints.WEST));
+
+        JCheckBox coloredNamesInUserlist = d.addSimpleBooleanSetting(
+            "displayColoredNamesInUserlist",
+            Language.getString("settings.label.displayColoredNamesInUserlist"),
+            "");
+        otherPanel.add(coloredNamesInUserlist, d.makeGbc(0, 2, 2, 1, GridBagConstraints.WEST));
     }
-    
+
     public void setData(List<UsercolorItem> data) {
         this.data.setData(data);
     }
-    
+
     public List<UsercolorItem> getData() {
         return data.getData();
     }
-    
+
     public void setDefaultBackground(Color color) {
         data.setDefaultBackground(color);
         this.defaultBackgroundColor = color;
     }
-    
+
     public void editItem(String item) {
         data.edit(item);
     }
-    
+
     /**
      * Renderer for the item column, which uses a {@code UsercolorItem} to
      * display the item id and displays an error if the item type is undefined.
@@ -168,5 +173,5 @@ public class UsercolorSettings extends SettingsPanel {
         }
 
     }
-    
+
 }

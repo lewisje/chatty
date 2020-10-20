@@ -1,4 +1,3 @@
-
 package chatty.gui.components;
 
 import chatty.Room;
@@ -37,13 +36,13 @@ import javax.swing.event.DocumentListener;
  * @author tduva
  */
 public final class Channel extends JPanel {
-    
+
     public enum Type {
         NONE, CHANNEL, WHISPER, SPECIAL
     }
-    
+
     private static final int DIVIDER_SIZE = 5;
-    
+
     private final ChannelEditBox input;
     private final ChannelTextPane text;
     private final UserList users;
@@ -53,7 +52,7 @@ public final class Channel extends JPanel {
     private final StyleServer styleManager;
     private final MainGui main;
     private Type type;
-    
+
     private boolean userlistEnabled = true;
     private int previousUserlistWidth;
     private int userlistMinWidth;
@@ -68,19 +67,19 @@ public final class Channel extends JPanel {
         this.type = type;
         this.room = room;
         setName(room.getDisplayName());
-        
+
         // Text Pane
         text = new ChannelTextPane(main,styleManager);
         text.setContextMenuListener(contextMenuListener);
-        
+
         setTextPreferredSizeTemporarily();
-        
+
         west = new JScrollPane(text);
         text.setScrollPane(west);
         //System.out.println(west.getVerticalScrollBarPolicy());
         //System.out.println(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         west.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        
+
         // PageUp/Down hotkeys / Scrolling
         InputMap westScrollInputMap = west.getInputMap(WHEN_IN_FOCUSED_WINDOW);
         westScrollInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "pageUp");
@@ -89,18 +88,16 @@ public final class Channel extends JPanel {
         west.getActionMap().put("pageDown", new ScrollAction("pageDown", west.getVerticalScrollBar()));
         west.getVerticalScrollBar().setUnitIncrement(40);
 
-        
         // User list
-        users = new UserList(contextMenuListener, main.getUserListener());
+        users = new UserList(contextMenuListener, main.getUserListener(), main.getSettings());
         updateUserlistSettings();
         userlist = new JScrollPane(users);
-        
-        
+
         // Split Pane
         mainPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,west,userlist);
         mainPane.setResizeWeight(1);
         mainPane.setDividerSize(DIVIDER_SIZE);
-        
+
         // Text input
         input = new ChannelEditBox(40);
         input.addActionListener(main.getActionListener());
@@ -116,13 +113,13 @@ public final class Channel extends JPanel {
         add(mainPane, BorderLayout.CENTER);
         add(input, BorderLayout.SOUTH);
     }
-    
+
     public void init() {
         text.setChannel(this);
-        
+
         input.requestFocusInWindow();
         setStyles();
-        
+
         input.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -142,7 +139,7 @@ public final class Channel extends JPanel {
             }
         });
     }
-    
+
     public boolean setRoom(Room room) {
         if (room != null && this.room != room) {
             this.room = room;
@@ -152,37 +149,37 @@ public final class Channel extends JPanel {
         }
         return false;
     }
-    
+
     public Room getRoom() {
         return room;
     }
-    
+
     public void cleanUp() {
         text.cleanUp();
         input.cleanUp();
     }
-    
+
     public void setType(Type type) {
         this.type = type;
     }
-    
+
     public Type getType() {
         return type;
     }
-    
+
     public void setScrollbarAlways(boolean always) {
         west.setVerticalScrollBarPolicy(always ? 
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     }
-    
+
     public void setMouseClickedListener(MouseClickedListener listener) {
         text.setMouseClickedListener(listener);
     }
-    
+
     public String getChannel() {
         return room.getChannel();
     }
-    
+
     @Override
     public String getToolTipText() {
         if (room.getStreamId() != null) {
@@ -190,20 +187,20 @@ public final class Channel extends JPanel {
         }
         return room.getChannel();
     }
-    
+
     public String getFilename() {
         return room.getFilename();
     }
-    
+
     @Override
     public String getName() {
         return room != null ? room.getDisplayName() : null;
     }
-    
+
     public String getOwnerChannel() {
         return room.getOwnerChannel();
     }
-    
+
     /**
      * Gets the name of the stream (without leading #) if it is a stream channel
      * (and thus has a leading #) ;)
@@ -213,31 +210,31 @@ public final class Channel extends JPanel {
     public String getStreamName() {
         return room.getStream();
     }
-    
+
     public void addUser(User user) {
         users.addUser(user);
     }
-    
+
     public void removeUser(User user) {
         users.removeUser(user);
     }
-    
+
     public void updateUser(User user) {
         users.updateUser(user);
     }
-    
+
     public void resortUserlist() {
         users.resort();
     }
-    
+
     public void clearUsers() {
         users.clearUsers();
     }
-    
+
     public int getNumUsers() {
         return users.getNumUsers();
     }
-    
+
     public final void updateUserlistSettings() {
         users.setDisplayNamesMode(main.getSettings().getLong("displayNamesModeUserlist"));
     }
@@ -245,7 +242,7 @@ public final class Channel extends JPanel {
     public ChannelEditBox getInput() {
         return input;
     }
-    
+
     public String getInputText() {
         return input.getText();
     }
@@ -258,48 +255,46 @@ public final class Channel extends JPanel {
             input.requestFocusInWindow();
         });
         return input.requestFocusInWindow();
-        
+
     }
-    
-    
+
     // Messages
-    
+
     public boolean search(String searchText) {
         return text.search(searchText);
     }
-    
+
     public void resetSearch() {
         text.resetSearch();
     }
-    
+
     public void printLine(String line) {
         text.printLine(line);
     }
-    
+
     public void printInfoMessage(InfoMessage message) {
         text.printInfoMessage(message);
     }
-    
+
     public void userBanned(User user, long duration, String reason, String id) {
         text.userBanned(user, duration, reason, id);
     }
-    
+
     public void printCompact(String type, User user) {
         text.printCompact(type, user);
     }
-    
+
     public void printMessage(Message message) {
         text.printMessage(message);
     }
-    
-    
+
     // Style
-    
+
     public void refreshStyles() {
         text.refreshStyles();
         setStyles();
     }
-    
+
     private void setStyles() {
         input.setFont(styleManager.getFont("input"));
         input.setBackground(styleManager.getColor("inputBackground"));
@@ -311,16 +306,16 @@ public final class Channel extends JPanel {
         users.setForeground(styleManager.getColor("foreground"));
         refreshBufferSize();
     }
-    
+
     private void refreshBufferSize() {
         Long bufferSize = (Long)main.getSettings().mapGet("bufferSizes", StringUtil.toLowerCase(getChannel()));
         text.setBufferSize(bufferSize != null ? bufferSize.intValue() : -1);
     }
-    
+
     public void clearChat() {
         text.clearAll();
     }
-    
+
     /**
      * Insert text into the input box at the current caret position.
      * 
@@ -331,17 +326,17 @@ public final class Channel extends JPanel {
     public void insertText(String text, boolean withSpace) {
         input.insertAtCaret(text, withSpace);
     }
-    
+
     private static class ScrollAction extends AbstractAction {
-        
+
         private final String action;
         private final JScrollBar scrollbar;
-        
+
         ScrollAction(String action, JScrollBar scrollbar) {
             this.scrollbar = scrollbar;
             this.action = action;
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             int now = scrollbar.getValue();
@@ -355,13 +350,13 @@ public final class Channel extends JPanel {
             scrollbar.setValue(newValue);
         }
     }
-    
+
     public final void setUserlistWidth(int width, int minWidth) {
         userlist.setPreferredSize(new Dimension(width, 10));
         userlist.setMinimumSize(new Dimension(minWidth, 0));
         userlistMinWidth = minWidth;
     }
-    
+
     /**
      * Setting the preferred size to 0, so the text pane doesn't influence the
      * size of the userlist. Setting it back later so it doesn't flicker when
@@ -380,7 +375,7 @@ public final class Channel extends JPanel {
         t.setRepeats(false);
         t.start();
     }
-    
+
     /**
      * Toggle visibility for the text input box.
      */
@@ -388,7 +383,7 @@ public final class Channel extends JPanel {
         input.setVisible(!input.isVisible());
         revalidate();
     }
-    
+
     /**
      * Enable or disable the userlist. As with setting the initial size, this
      * requires some hacky stuff to get the size back correctly.
@@ -413,56 +408,55 @@ public final class Channel extends JPanel {
         userlistEnabled = enable;
         revalidate();
     }
-    
+
     public void setCompletionEnabled(boolean enabled) {
         input.setCompletionEnabled(enabled);
     }
-    
+
     /**
      * Toggle the userlist.
      */
     public final void toggleUserlist() {
         setUserlistEnabled(!userlistEnabled);
     }
-    
+
     public void selectPreviousUser() {
         text.selectPreviousUser();
     }
-    
+
     public void selectNextUser() {
         text.selectNextUser();
     }
-    
+
     public void selectNextUserExitAtBottom() {
         text.selectNextUserExitAtBottom();
     }
-    
+
     public void exitUserSelection() {
         text.exitUserSelection();
     }
-    
+
     public void toggleUserSelection() {
         text.toggleUserSelection();
     }
-    
+
     public User getSelectedUser() {
         return text.getSelectedUser();
     }
-    
-        
+
     @Override
     public String toString() {
         return String.format("%s '%s'", type, room);
     }
-    
+
     private OnceOffEditListener onceOffEditListener;
-    
+
     public void setOnceOffEditListener(OnceOffEditListener listener) {
         onceOffEditListener = listener;
     }
-    
+
     public interface OnceOffEditListener {
         public void edited(String channel);
     }
-    
+
 }

@@ -1,4 +1,3 @@
-
 package chatty.gui.components;
 
 import chatty.Helper;
@@ -8,6 +7,8 @@ import chatty.gui.UserListener;
 import chatty.gui.UserlistModel;
 import chatty.gui.components.menus.ContextMenuListener;
 import chatty.gui.components.menus.UserContextMenu;
+import chatty.util.settings.Settings;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -21,19 +22,20 @@ import javax.swing.JList;
  * @author tduva
  */
 public class UserList extends JList<User> {
-    
+
     private final UserlistModel<User> data;
     private final ContextMenuListener contextMenuListener;
     private final UserListener userListener;
-    
+
     private long displayNamesMode = SettingsManager.DISPLAY_NAMES_MODE_CAPITALIZED;
-    
+
     public UserList(ContextMenuListener contextMenuListener,
-            UserListener userListener) {
+            UserListener userListener,
+            Settings settings) {
         data = new UserlistModel<>();
         this.setModel(data);
         this.setCellRenderer(new DefaultListCellRenderer() {
-            
+
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value,
                     int index, boolean isSelected, boolean cellHasFocus) {
@@ -48,12 +50,16 @@ public class UserList extends JList<User> {
                 }
                 // Configure some default stuff like colors
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                
+
                 User user = (User)value;
                 setText(Helper.makeDisplayNick(user, displayNamesMode));
+                if (settings.getBoolean("displayColoredNamesInUserlist")) {
+                    Color userColor = user.getCorrectedColor();
+                    if (userColor != null) setForeground(userColor);
+                }
                 return this;
             }
-            
+
         });
         this.addMouseListener(new MouseListener() {
 
@@ -85,43 +91,43 @@ public class UserList extends JList<User> {
         this.contextMenuListener = contextMenuListener;
         this.userListener = userListener;
     }
-    
+
     public void setDisplayNamesMode(long mode) {
         this.displayNamesMode = mode;
         data.update();
     }
-    
+
     public void addUser(User user) {
         data.add(user);
     }
-    
+
     public void removeUser(User user) {
         data.remove(user);
     }
-    
+
     public void updateUser(User user) {
         data.remove(user);
         data.add(user);
         //TODO: this didnt sort the user correctly after opping, maybe it can be fixed?
         //userlistData.updated(user);
     }
-    
+
     public void resort() {
         data.sort();
     }
-    
+
     public void clearUsers() {
         data.clear();
     }
-    
+
     public int getNumUsers() {
         return data.getSize();
     }
-    
+
     public ArrayList<User> getData() {
         return data.getData();
     }
-    
+
     /**
      * Open context menu for this user, if the event points at one.
      * 
@@ -136,7 +142,7 @@ public class UserList extends JList<User> {
             }
         }
     }
-    
+
     /**
      * Gets the user from the item this mouse event points to.
      * 
@@ -152,7 +158,7 @@ public class UserList extends JList<User> {
         }
         return null;
     }
-    
+
     /**
      * Called when a user is double-clicked to tell the GUI to perform the
      * User-selected action (open the User Info dialog).
@@ -165,7 +171,5 @@ public class UserList extends JList<User> {
             userListener.userClicked(user, null, null, e);
         }
     }
-    
-    
-    
+
 }

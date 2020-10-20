@@ -1,4 +1,3 @@
-
 package chatty.gui.components.settings;
 
 import chatty.gui.GuiUtil;
@@ -29,16 +28,16 @@ import javax.swing.JTextField;
  * @author tduva
  */
 public class ColorSetting extends JPanel implements StringSetting {
-    
+
     /**
      * Used to define whether this color represents a foreground or background
      * color.
      */
     public final static int FOREGROUND = 0;
     public final static int BACKGROUND = 1;
-    
+
     private final int type;
-    
+
     /**
      * The name of the color setting that should be the base (background) for
      * this one.
@@ -61,12 +60,12 @@ public class ColorSetting extends JPanel implements StringSetting {
      */
     private Color currentColor;
     private Color secondaryColor;
-    
+
     private final Set<ColorSettingListener> listeners = new HashSet<>();
-    
+
     private final ColorChooser colorChooser;
     private final JButton chooseColor = new JButton();
-    
+
     /**
      * 
      * 
@@ -79,11 +78,11 @@ public class ColorSetting extends JPanel implements StringSetting {
     public ColorSetting(final int type, String baseColorSetting,
             final String name, final String text, ColorChooser chooser) {
         setLayout(new GridBagLayout());
-        
+
         this.type = type;
         this.baseColorSetting = baseColorSetting;
         this.colorChooser = chooser;
-        
+
         // Set text and size of preview
         if (!text.isEmpty()) {
             preview.setText(" "+text);
@@ -91,7 +90,7 @@ public class ColorSetting extends JPanel implements StringSetting {
         }
         preview.setToolTipText(name);
         preview.setPreferredSize(new Dimension(120,20));
-        
+
         // Choose color button action
         chooseColor.addActionListener(new ActionListener() {
 
@@ -103,19 +102,19 @@ public class ColorSetting extends JPanel implements StringSetting {
         });
         chooseColor.setMargin(new Insets(0, 0, 0, 0));
         chooseColor.setIcon(new ImageIcon(ColorSetting.class.getResource("colorpicker.png")));
-        
+
         // Textfield settings
         textField.setEditable(false);
         textField.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 3));
         textField.setHorizontalAlignment(JTextField.RIGHT);
-        
+
         initiate();
     }
-    
+
     public boolean hasBase(String setting) {
         return setting.equals(baseColorSetting);
     }
-    
+
     /**
      * Adds the components to the panel.
      */
@@ -131,11 +130,11 @@ public class ColorSetting extends JPanel implements StringSetting {
         gbc.weightx = 0;
         add(chooseColor, gbc);
     }
-    
+
     public String getText() {
         return textField.getText();
     }
-    
+
     /**
      * Updates the preview and current Color objects based on the saved colors.
      */
@@ -143,7 +142,7 @@ public class ColorSetting extends JPanel implements StringSetting {
         // Update Color objects based on current values
         currentColor = HtmlColors.decode(getSettingValue());
         secondaryColor = HtmlColors.decode(baseColor);
-        
+
         // Choose the approriate background/foreground colors depending on type
         Color foregroundColor;
         Color backgroundColor;
@@ -161,7 +160,7 @@ public class ColorSetting extends JPanel implements StringSetting {
         textField.setForeground(foregroundColor);
         textField.setBackground(backgroundColor);
     }
-    
+
     /**
      * Sets a new base color and updates the preview.
      * 
@@ -171,15 +170,15 @@ public class ColorSetting extends JPanel implements StringSetting {
         this.baseColor = baseColor;
         updated();
     }
-    
+
     public void setBaseColor(Color color) {
         setBaseColor(HtmlColors.getColorString(color));
     }
-    
+
     public void setBaseColorSetting(String setting) {
         this.baseColorSetting = setting;
     }
-    
+
     @Override
     public void setEnabled(boolean enabled) {
         preview.setEnabled(enabled);
@@ -204,24 +203,24 @@ public class ColorSetting extends JPanel implements StringSetting {
             listener.colorUpdated();
         }
     }
-    
+
     public Color getSettingValueAsColor() {
         return currentColor;
     }
-    
+
     public void addListener(ColorSettingListener listener) {
         if (listener != null) {
             listeners.add(listener);
         }
     }
-    
+
     public void removeListener(ColorSettingListener listener) {
         listeners.remove(listener);
     }
-    
+
     public void addMouseListener(MouseListener listener) {
         textField.addMouseListener(listener);
         preview.addMouseListener(listener);
     }
-    
+
 }
